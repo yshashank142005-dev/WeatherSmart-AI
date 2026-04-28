@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../api'
 
 const T = {
   en: { title:'Irrigation Scheduler', sub:'Smart weekly water plan based on forecast & soil', need:'Weekly Water Need', rain:'Forecast Rainfall', net:'Net Irrigation Need', sessions:'Sessions/Week', tip:'Water Saving Tip', plan:'Daily Plan', empty:'Run analysis to generate irrigation schedule.' },
@@ -15,7 +15,7 @@ export default function IrrigationPanel({ params, lang, trigger }) {
     const run = async () => {
       setLoading(true)
       try {
-        const r = await axios.post('/api/irrigation', {
+        const r = await api.post('/api/irrigation', {
           city: params.city, crop: params.crop,
           soil_moisture: params.soil_moisture, soil_ph: params.soil_ph,
         })

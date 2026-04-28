@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import axios from 'axios'
+import api from '../api'
 
 const T = {
   en: {
@@ -77,7 +77,7 @@ export default function AlertsPanel({ params, lang, trigger }) {
       setLoading(true)
       setDispResult(null)
       try {
-        const r = await axios.post('/api/alert', {
+        const r = await api.post('/api/alert', {
           city:     params.city,
           crop:     params.crop,
           channels: ['inapp'],   // auto-dispatch in-app on load
@@ -92,7 +92,7 @@ export default function AlertsPanel({ params, lang, trigger }) {
   // ── Poll in-app notification feed every 10s ───────────────────────────────
   const fetchNotifs = useCallback(async () => {
     try {
-      const r = await axios.get('/api/notifications')
+      const r = await api.get('/api/notifications')
       setNotifs(r.data.notifications || [])
       setUnread(r.data.unread || 0)
     } catch {}
@@ -114,7 +114,7 @@ export default function AlertsPanel({ params, lang, trigger }) {
     setDispResult(null)
     try {
       const activeChannels = Object.entries(channels).filter(([, v]) => v).map(([k]) => k)
-      const r = await axios.post('/api/alert', {
+      const r = await api.post('/api/alert', {
         city:     params.city,
         crop:     params.crop,
         email:    channels.email  ? email : '',

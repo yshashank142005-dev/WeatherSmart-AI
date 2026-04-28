@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import axios from 'axios'
+import api from '../api'
 
 const WELCOME = {
   en: "👋 Hello! I'm **WeatherSmart AI**. Ask me about crops, weather, irrigation, pests, or soil health. Type **help** to see all topics!",
@@ -40,7 +40,7 @@ export default function ChatbotPanel({ lang }) {
     setMsgs(m => [...m, { role:'user', text: msg }])
     setLoading(true)
     try {
-      const r = await axios.post('/api/chatbot', { message: msg, lang })
+      const r = await api.post('/api/chatbot', { message: msg, lang })
       setMsgs(m => [...m, { role:'bot', text: r.data.response }])
     } catch {
       setMsgs(m => [...m, { role:'bot', text:'⚠️ Connection error. Please ensure the backend is running.' }])

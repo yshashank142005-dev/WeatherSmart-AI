@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../api'
 import { Bar } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js'
 
@@ -24,8 +24,8 @@ export default function PredictionsPanel({ params, lang, trigger }) {
       try {
         const body = { city: params.city, crop: params.crop, soil_moisture: params.soil_moisture, soil_ph: params.soil_ph }
         const [p, s] = await Promise.all([
-          axios.post('/api/predict', body),
-          axios.post('/api/suitability', body),
+          api.post('/api/predict', body),
+          api.post('/api/suitability', body),
         ])
         setPred(p.data)
         setSuit(s.data.rankings)

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../api'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS, CategoryScale, LinearScale,
@@ -29,8 +29,9 @@ export default function WeatherPanel({ params, lang, trigger }) {
       setError(null)
       try {
         const [c, f] = await Promise.all([
-          axios.get(`/api/weather?city=${encodeURIComponent(params.city)}`),
-          axios.get(`/api/forecast?city=${encodeURIComponent(params.city)}`),
+          api.get(`/api/weather?city=${encodeURIComponent(params.city)}`),
+          api.get(`/api/forecast?city=${encodeURIComponent(params.city)}`),
+
         ])
         if (!c.data.success) throw new Error(c.data.error || 'Weather fetch failed')
         setCurrent(c.data.data)

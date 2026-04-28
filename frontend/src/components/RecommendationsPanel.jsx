@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../api'
 
 const T = {
   en: { title:'Smart Recommendations', sub:'Hybrid rule-based + ML advisory', high:'High Priority', medium:'Medium Priority', low:'Low Priority', empty:'No recommendations. Run analysis first.' },
@@ -15,7 +15,7 @@ export default function RecommendationsPanel({ params, lang, trigger }) {
     const run = async () => {
       setLoading(true)
       try {
-        const r = await axios.post('/api/recommend', {
+        const r = await api.post('/api/recommend', {
           city: params.city, crop: params.crop,
           soil_moisture: params.soil_moisture, soil_ph: params.soil_ph,
         })
