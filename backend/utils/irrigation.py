@@ -96,7 +96,12 @@ def _build_daily_plan(sessions: int, per_session: float, forecast: list) -> list
     day_rains = [(i, forecast[i]["rainfall"] if i < len(forecast) else 0) for i in range(7)]
     sorted_days = sorted(day_rains, key=lambda x: x[1])
 
-    irrigate_days = set(d[0] for d in sorted_days[:sessions]) if sessions > 0 else set()
+    # Only assign irrigation to days with < 10 mm expected rainfall.
+    # If there are fewer eligible days than requested sessions, use what's available
+    # rather than spilling into rainy days (which would produce contradictory plans).
+    LOW_RAIN_THRESHOLD = 10.0
+    eligible_days = [d for d in sorted_days if d[1] < LOW_RAIN_THRESHOLD]
+    irrigate_days = set(d[0] for d in eligible_days[:sessions]) if sessions > 0 else set()
 
     for i in range(7):
         date   = (today + timedelta(days=i)).strftime("%a, %b %d")

@@ -143,8 +143,19 @@ class ModelManager:
         raw_yield   = float(self.model.predict(features)[0])
         yield_index = round(max(0, min(100, raw_yield)), 1)
 
-        # Confidence: blend R² with distance from extremes
-        confidence = round(min(98, self.train_r2 * 100 - abs(yield_index - 50) * 0.2), 1)
+        # Confidence: use std-dev across individual RF trees (proper uncertainty).
+        # Lower spread → higher confidence.  Clamped to [0, 98].
+        try:
+            rf_step      = self.model.named_steps["rf"]
+            # Each estimator predicts on the *scaled* features
+            scaler       = self.model.named_steps["scaler"]
+            X_scaled     = scaler.transform(features)
+            tree_preds   = np.array([t.predict(X_scaled)[0] for t in rf_step.estimators_])
+            std_dev      = float(tree_preds.std())
+            confidence   = round(max(0, min(98, 100 - std_dev * 2)), 1)
+        except Exception:
+            # Fallback if pipeline structure changes
+            confidence = round(max(0, min(98, self.train_r2 * 100 - abs(yield_index - 50) * 0.2)), 1)
 
         interpretation = (
             "Excellent yield expected"   if yield_index >= 80 else

@@ -58,12 +58,12 @@ def _generate_recommendations(crop, weather, soil, yield_pred, climate_risk, pes
 
     # ── Rainfall / water advice ──────────────────────────────────────
     r_range = cond.get("rain", (80, 150))
-    if r < r_range[0] / 30:           # daily equivalent
+    if r < r_range[0] / 30:           # daily equivalent (mm/month ÷ 30)
         recs.append({"category": "Irrigation", "priority": "high",
                      "icon": "💧",
                      "message": "Low rainfall detected. Begin supplemental irrigation. "
                                 "Prefer drip irrigation to minimise water loss."})
-    elif r > r_range[1] / 20:
+    elif r > r_range[1] / 30:         # same divisor for consistency
         recs.append({"category": "Drainage", "priority": "medium",
                      "icon": "🌊",
                      "message": "Excess rainfall risk. Ensure proper field drainage. "

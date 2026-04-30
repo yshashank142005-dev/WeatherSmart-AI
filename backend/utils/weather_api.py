@@ -53,6 +53,31 @@ def get_forecast(city: str) -> list[dict]:
         return _mock_forecast(city)
 
 
+# ── UV-index helper (OWM /weather has no uvi field) ──────────────────────────
+
+def _estimate_uv(data: dict) -> float:
+    """
+    Estimate UV index from local solar time using a simple bell-curve proxy.
+    Peaks at ~7 around solar noon, 0 at night.  Clouds reduce it by ~40%.
+    """
+    import math as _math
+    # Use timezone offset (seconds) from OWM to get local hour
+    tz_offset = data.get("timezone", 0)       # seconds east of UTC
+    utc_ts    = data.get("dt", time.time())
+    local_hour = ((utc_ts + tz_offset) % 86400) / 3600   # 0-24
+
+    # Cosine bell centred on 12:00, zero outside sunrise/sunset (6-18)
+    angle = _math.pi * (local_hour - 6) / 12             # 0 at 06:00, π at 18:00
+    solar = max(0.0, _math.sin(angle))                    # 0–1
+
+    # Cloud attenuation (cloudiness 0-100 → reduction factor)
+    cloud_pct = data.get("clouds", {}).get("all", 20)
+    cloud_factor = 1 - cloud_pct * 0.004                  # 100% cloud → 0.6×
+
+    uv = round(solar * 10 * cloud_factor, 1)              # peak ~10 on clear noon
+    return min(12.0, max(0.0, uv))
+
+
 # ── Parsers ───────────────────────────────────────────────────────────────────
 
 def _parse_current(data: dict) -> dict:
@@ -66,7 +91,9 @@ def _parse_current(data: dict) -> dict:
         "wind_speed":  round(data["wind"]["speed"] * 3.6, 1),   # m/s → km/h
         "description": data["weather"][0]["description"].title(),
         "icon":        data["weather"][0]["icon"],
-        "uv_index":    data.get("uvi", round(random.uniform(2, 10), 1)),
+        # uvi is NOT available on the /weather endpoint (only /onecall).
+        # Estimate from a simple solar-elevation proxy keyed to local hour.
+        "uv_index":    data.get("uvi", _estimate_uv(data)),
         "pressure":    data["main"]["pressure"],
         "visibility":  data.get("visibility", 10000) // 1000,
     }
