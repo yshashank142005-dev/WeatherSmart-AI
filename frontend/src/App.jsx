@@ -6,10 +6,12 @@ import RecommendationsPanel from './components/RecommendationsPanel.jsx'
 import IrrigationPanel from './components/IrrigationPanel.jsx'
 import AlertsPanel from './components/AlertsPanel.jsx'
 import ChatbotPanel from './components/ChatbotPanel.jsx'
+import ScenarioPanel from './components/ScenarioPanel.jsx'
 
 const TABS = [
   { id: 'weather',   icon: '🌤️',  label: { en: 'Weather',         hi: 'मौसम' } },
   { id: 'predict',   icon: '📊',  label: { en: 'Predictions',     hi: 'पूर्वानुमान' } },
+  { id: 'scenario',  icon: '🔮',  label: { en: 'What-If',         hi: 'क्या-अगर' } },
   { id: 'recommend', icon: '🌱',  label: { en: 'Recommendations', hi: 'सलाह' } },
   { id: 'irrigate',  icon: '💧',  label: { en: 'Irrigation',      hi: 'सिंचाई' } },
   { id: 'alerts',    icon: '⚠️',  label: { en: 'Alerts',          hi: 'अलर्ट' } },
@@ -40,6 +42,7 @@ export default function App() {
       <main className="main-content">
         {tab === 'weather'   && <WeatherPanel         params={params} lang={lang} trigger={trigger} />}
         {tab === 'predict'   && <PredictionsPanel     params={params} lang={lang} trigger={trigger} />}
+        {tab === 'scenario'  && <ScenarioPanel        params={params} lang={lang} trigger={trigger} />}
         {tab === 'recommend' && <RecommendationsPanel params={params} lang={lang} trigger={trigger} />}
         {tab === 'irrigate'  && <IrrigationPanel      params={params} lang={lang} trigger={trigger} />}
         {tab === 'alerts'    && <AlertsPanel          params={params} lang={lang} trigger={trigger} />}

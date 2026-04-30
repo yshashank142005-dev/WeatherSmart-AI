@@ -9,6 +9,7 @@ app is fully functional without an API key.
 """
 
 import random
+import time
 import math
 import requests
 from datetime import datetime, timedelta
@@ -133,11 +134,29 @@ _DESCS = [
 ]
 
 
+# ── Mock weather cache ───────────────────────────────────────────────────────
+# Caches mock responses per city so every API call within a session returns
+# the SAME base weather.  Without this, each call gets different random values,
+# which makes the What-If Scenario Engine's delta comparisons meaningless.
+_mock_cache: dict[str, tuple[float, dict]] = {}
+_CACHE_TTL  = 120   # seconds — regenerate mock data every 2 minutes
+
+
 def _mock_current(city: str) -> dict:
-    p    = _profile(city)
-    temp = round(p["base_temp"] + random.uniform(-3, 3), 1)
+    city_key = city.lower()
+    now      = time.time()
+
+    # Return cached snapshot if still fresh
+    if city_key in _mock_cache:
+        ts, cached = _mock_cache[city_key]
+        if now - ts < _CACHE_TTL:
+            return dict(cached)   # return a copy so callers can't mutate the cache
+
+    # Generate a fresh snapshot and cache it
+    p          = _profile(city)
+    temp       = round(p["base_temp"] + random.uniform(-3, 3), 1)
     desc, icon = random.choice(_DESCS)
-    return {
+    snapshot   = {
         "city":        city.title(),
         "country":     "IN",
         "temperature": temp,
@@ -151,6 +170,8 @@ def _mock_current(city: str) -> dict:
         "pressure":    random.randint(1005, 1025),
         "visibility":  random.randint(5, 20),
     }
+    _mock_cache[city_key] = (now, snapshot)
+    return dict(snapshot)
 
 
 def _mock_forecast(city: str) -> list[dict]:

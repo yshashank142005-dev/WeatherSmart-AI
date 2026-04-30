@@ -40,6 +40,7 @@ def create_app() -> Flask:
                 "GET  /api/forecast?city=<city>",
                 "POST /api/predict",
                 "POST /api/suitability",
+                "POST /api/whatif",
                 "POST /api/recommend",
                 "POST /api/irrigation",
                 "POST /api/alert",

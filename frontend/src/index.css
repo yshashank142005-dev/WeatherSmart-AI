@@ -327,3 +327,234 @@ input[type=range] { flex: 1; accent-color: var(--accent); }
 .text-muted  { color: var(--text2); font-size: 13px; }
 .mt-16 { margin-top: 16px; }
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
+
+/* ════════════════════════════════════════════════════════════════════
+   What-If Scenario Engine
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Sliders row ─────────────────────────────────────────────────── */
+.wi-sliders {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media(max-width:700px) { .wi-sliders { grid-template-columns: 1fr; } }
+
+.wi-slider-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--wi-accent, var(--accent));
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+.wi-slider-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px;
+}
+.wi-slider-icon  { font-size: 20px; }
+.wi-slider-label { flex: 1; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.09em; }
+.wi-delta-val    { font-family: var(--font-head); font-size: 22px; font-weight: 800; min-width: 64px; text-align: right; transition: color 0.25s; }
+
+.wi-control-row {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.wi-step-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text); font-size: 18px; font-weight: 700;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; line-height: 1;
+}
+.wi-step-btn:hover {
+  background: var(--wi-accent, var(--accent));
+  color: #fff; border-color: transparent;
+}
+
+.wi-range-wrap { position: relative; flex: 1; }
+
+.wi-zero-tick {
+  position: absolute;
+  top: 50%; transform: translate(-50%, -50%);
+  width: 2px; height: 12px;
+  background: var(--border);
+  border-radius: 1px;
+  pointer-events: none; z-index: 1;
+}
+
+.wi-range-input {
+  width: 100%;
+  accent-color: var(--wi-accent, var(--accent));
+  height: 6px;
+  cursor: pointer;
+  display: block;
+}
+
+.wi-markers {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--text3);
+  margin-top: 8px;
+}
+
+/* ── Reset button ────────────────────────────────────────────────── */
+.wi-reset-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 16px; margin-bottom: 16px;
+  border: 1px solid var(--border); border-radius: 99px;
+  background: var(--surface); color: var(--text2);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.wi-reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Summary bar ─────────────────────────────────────────────────── */
+.wi-summary-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px; margin-bottom: 20px;
+  flex-wrap: wrap; gap: 10px;
+}
+.wi-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.wi-pill {
+  font-size: 12px; padding: 4px 10px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 99px; color: var(--text2);
+}
+.wi-yield-delta {
+  display: flex; align-items: center;
+  padding: 6px 16px; border: 1px solid; border-radius: 99px;
+  font-weight: 700; font-size: 15px;
+  transition: color 0.3s, border-color 0.3s;
+}
+
+/* ── Compare grid ────────────────────────────────────────────────── */
+.wi-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 56px 1fr;
+  gap: 0;
+  align-items: start;
+  margin-bottom: 20px;
+}
+@media(max-width:800px) {
+  .wi-compare-grid { grid-template-columns: 1fr; }
+  .wi-vs { flex-direction: row; padding: 8px 0; min-height: unset; }
+  .wi-vs-line { flex: 1; width: auto; height: 1px; }
+}
+
+/* ── Individual compare card ─────────────────────────────────────── */
+.wi-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.wi-card.wi-improved {
+  border-color: rgba(34,211,165,0.4);
+  box-shadow: 0 0 28px rgba(34,211,165,0.08);
+}
+.wi-card.wi-degraded {
+  border-color: rgba(239,68,68,0.4);
+  box-shadow: 0 0 28px rgba(239,68,68,0.08);
+}
+
+.wi-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.wi-card-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 99px;
+  border: 1px solid; /* color/bg set inline */
+}
+.wi-card-meta { font-size: 12px; color: var(--text3); }
+
+/* ── Yield circle (scenario version) ────────────────────────────── */
+.wi-circle-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; margin: 4px 0 16px;
+}
+
+.wi-yield-circle {
+  width: 110px; height: 110px; border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: conic-gradient(var(--ring, var(--accent)) var(--pct, 0%), var(--bg3) 0%);
+  position: relative;
+  transition: background 0.5s;
+}
+.wi-yield-circle::after {
+  content: ''; position: absolute; inset: 10px; border-radius: 50%;
+  background: var(--bg2);
+}
+.wi-yield-num {
+  position: relative; z-index: 1;
+  font-family: var(--font-head); font-size: 24px; font-weight: 800;
+  transition: color 0.3s;
+}
+.wi-yield-sub {
+  position: relative; z-index: 1;
+  font-size: 10px; color: var(--text3);
+}
+
+.wi-delta-tag {
+  font-size: 13px; font-weight: 700;
+  padding: 2px 10px; border: 1px solid; border-radius: 99px;
+  animation: wi-pop 0.3s ease;
+}
+@keyframes wi-pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* ── Interp & metrics ────────────────────────────────────────────── */
+.wi-interp {
+  text-align: center; font-size: 13px; color: var(--text2);
+  margin-bottom: 14px;
+}
+.wi-metrics {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px; background: var(--bg3);
+  border-radius: var(--radius-sm); margin-bottom: 12px;
+}
+.wi-metric-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: var(--text2);
+}
+.wi-metric-label { color: var(--text3); }
+.wi-metric-val   { font-weight: 600; color: var(--accent); }
+
+.wi-factor {
+  font-size: 11px; color: var(--text3);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── VS divider ──────────────────────────────────────────────────── */
+.wi-vs {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 220px; padding: 0 2px;
+}
+.wi-vs-line { flex: 1; width: 1px; background: var(--border); }
+.wi-vs-badge {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; color: var(--text3);
+  flex-shrink: 0;
+}
+
+/* ── Insight strip ───────────────────────────────────────────────── */
+.wi-insight-row {
+  font-size: 13px; color: var(--text2);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.wi-insight-row:last-child { border-bottom: none; }
+
