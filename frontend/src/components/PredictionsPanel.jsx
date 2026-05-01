@@ -13,14 +13,16 @@ const T = {
 const rankClass = r => r===1?'gold':r===2?'silver':r===3?'bronze':''
 
 export default function PredictionsPanel({ params, lang, trigger }) {
-  const [pred, setPred]     = useState(null)
-  const [suit, setSuit]     = useState([])
+  const [pred, setPred]       = useState(null)
+  const [suit, setSuit]       = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState(null)
   const t = T[lang]
 
   useEffect(() => {
     const run = async () => {
       setLoading(true)
+      setError(null)
       try {
         const body = {
           city: params.city, crop: params.crop,
@@ -33,7 +35,24 @@ export default function PredictionsPanel({ params, lang, trigger }) {
         ])
         setPred(p.data)
         setSuit(s.data.rankings)
-      } catch {}
+      } catch (err) {
+        const status = err?.response?.status
+        const serverMsg = err?.response?.data?.detail || err?.response?.data?.message
+        let userMsg
+        if (!err.response) {
+          userMsg = 'Unable to reach the server. Please check your network connection or ensure the backend is running.'
+        } else if (status >= 500) {
+          userMsg = serverMsg
+            ? `Server error (${status}): ${serverMsg}`
+            : `Server error (${status}). The backend encountered an unexpected problem. Please try again later.`
+        } else if (status === 422) {
+          userMsg = 'Invalid request parameters. Please verify your inputs and try again.'
+        } else {
+          userMsg = serverMsg || `Request failed with status ${status}. Please try again.`
+        }
+        setError(userMsg)
+        console.error('[PredictionsPanel] API error:', err)
+      }
       setLoading(false)
     }
     run()
@@ -66,6 +85,29 @@ export default function PredictionsPanel({ params, lang, trigger }) {
         <h1 className="page-title">{t.title}</h1>
         <p className="page-sub">{t.sub}</p>
       </div>
+
+      {error && !loading && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex', alignItems: 'flex-start', gap: 12,
+            background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)',
+            borderRadius: 10, padding: '12px 16px', marginBottom: 20,
+            color: '#fca5a5', fontSize: 13, lineHeight: 1.55,
+          }}
+        >
+          <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+          <span style={{ flex: 1 }}>{error}</span>
+          <button
+            onClick={() => setError(null)}
+            aria-label="Dismiss error"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#fca5a5', fontSize: 18, lineHeight: 1, flexShrink: 0,
+            }}
+          >×</button>
+        </div>
+      )}
 
       {loading && <div className="loading-overlay"><span className="spinner"/> Running ML model…</div>}
 
