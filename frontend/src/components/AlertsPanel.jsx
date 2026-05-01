@@ -55,6 +55,17 @@ const ALERT_ICON = {
   HIGH_HUMIDITY: '💧',
 }
 
+const TOAST_VARIANT = {
+  success: 'bg-emerald-900 text-emerald-100',
+  warn: 'bg-amber-900 text-amber-100',
+  error: 'bg-rose-900 text-rose-100',
+}
+
+const CHANNEL_STYLES = {
+  active: 'border-indigo-400 bg-indigo-500/20 text-indigo-200 shadow-md shadow-indigo-500/20',
+  inactive: 'border-white/10 bg-white/5 text-slate-300',
+}
+
 export default function AlertsPanel({ params, lang, trigger }) {
   const t = T[lang]
 
@@ -139,23 +150,17 @@ export default function AlertsPanel({ params, lang, trigger }) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
 
       {/* ── Toast ── */}
       {toast && (
-        <div style={{
-          position: 'fixed', top: 24, right: 24, zIndex: 9999,
-          padding: '14px 20px', borderRadius: 10, fontWeight: 600, fontSize: 14,
-          background: toast.type === 'success' ? '#166534' : toast.type === 'warn' ? '#92400e' : '#7f1d1d',
-          color: '#fff', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          animation: 'fadeIn 0.3s ease',
-        }}>
+        <div className={`fixed right-6 top-6 z-[9999] rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-2xl animate-fade-in ${TOAST_VARIANT[toast.type]}`}>
           {toast.msg}
         </div>
       )}
 
       {/* ── Header ── */}
-      <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="page-header flex items-center justify-between gap-4">
         <div>
           <h1 className="page-title">{t.title}</h1>
           <p className="page-sub">{t.sub} — {params.city}</p>
@@ -164,20 +169,12 @@ export default function AlertsPanel({ params, lang, trigger }) {
         {/* Bell icon */}
         <button
           onClick={() => setShowNotifs(v => !v)}
-          style={{
-            position: 'relative', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)',
-            borderRadius: 10, padding: '10px 14px', cursor: 'pointer', fontSize: 22, color: '#a5b4fc',
-            transition: 'all 0.2s',
-          }}
+          className="relative rounded-xl border border-indigo-400/30 bg-indigo-500/15 px-3 py-2 text-2xl text-indigo-200 transition hover:bg-indigo-500/25"
           title="In-App Notifications"
         >
           🔔
           {unread > 0 && (
-            <span style={{
-              position: 'absolute', top: 4, right: 4, background: '#ef4444',
-              color: '#fff', borderRadius: '50%', width: 18, height: 18,
-              fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <span className="absolute right-1 top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
               {unread > 9 ? '9+' : unread}
             </span>
           )}
@@ -186,22 +183,22 @@ export default function AlertsPanel({ params, lang, trigger }) {
 
       {/* ── In-App Notification Drawer ── */}
       {showNotifs && (
-        <div className="card" style={{ marginBottom: 20, maxHeight: 320, overflowY: 'auto' }}>
+        <div className="card mb-5 max-h-80 overflow-y-auto">
           <div className="card-title">🔔 {t.notifTitle}</div>
           {notifs.length === 0 ? (
-            <p style={{ color: 'var(--text2)', fontSize: 14 }}>{t.notifEmpty}</p>
+            <p className="text-sm text-slate-300">{t.notifEmpty}</p>
           ) : (
             notifs.map((n, i) => (
-              <div key={i} style={{
-                padding: '10px 12px', marginBottom: 8,
-                borderLeft: `3px solid ${SEVERITY_COLOR[n.severity] || '#6366f1'}`,
-                background: 'rgba(255,255,255,0.03)', borderRadius: 6,
-              }}>
-                <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 2 }}>
+              <div
+                key={i}
+                className="mb-2 rounded-lg border border-white/10 bg-white/5 p-3"
+                style={{ borderLeft: `3px solid ${SEVERITY_COLOR[n.severity] || '#6366f1'}` }}
+              >
+                <div className="mb-0.5 text-xs text-slate-300">
                   {n.timestamp} — {n.city}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{n.message}</div>
-                <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>➜ {n.action}</div>
+                <div className="text-sm font-semibold text-white">{n.message}</div>
+                <div className="mt-0.5 text-xs text-slate-300">➜ {n.action}</div>
               </div>
             ))
           )}
@@ -212,9 +209,9 @@ export default function AlertsPanel({ params, lang, trigger }) {
 
       {/* ── No Alerts ── */}
       {!loading && alerts.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: 48 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-          <div style={{ fontSize: 16, color: 'var(--text2)' }}>{t.none}</div>
+        <div className="card p-12 text-center">
+          <div className="mb-3 text-5xl">✅</div>
+          <div className="text-base text-slate-300">{t.none}</div>
         </div>
       )}
 
@@ -223,7 +220,7 @@ export default function AlertsPanel({ params, lang, trigger }) {
         <div className="alert-list section-gap">
           {alerts.map((a, i) => (
             <div className={`alert-item ${a.severity}`} key={i}>
-              <div style={{ fontSize: 28, flexShrink: 0 }}>{ALERT_ICON[a.type] || '⚠️'}</div>
+              <div className="shrink-0 text-3xl">{ALERT_ICON[a.type] || '⚠️'}</div>
               <div className="alert-body">
                 <div className="alert-title">{a.message}</div>
                 <div className="alert-action">➜ {a.action}</div>
@@ -235,11 +232,11 @@ export default function AlertsPanel({ params, lang, trigger }) {
       )}
 
       {/* ── Notification Dispatch Panel ── */}
-      <div className="card" style={{ marginTop: 24 }}>
+      <div className="card mt-6">
         <div className="card-title"><span>📡</span> {t.channels}</div>
 
         {/* Channel toggles */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div className="mb-4 flex flex-wrap gap-2.5">
           {[
             { key: 'inapp', icon: '🔔', label: t.inapp },
             { key: 'email', icon: '📧', label: t.emailLabel },
@@ -248,14 +245,7 @@ export default function AlertsPanel({ params, lang, trigger }) {
             <button
               key={key}
               onClick={() => toggleChannel(key)}
-              style={{
-                padding: '8px 18px', borderRadius: 20, cursor: 'pointer',
-                fontWeight: 600, fontSize: 13, transition: 'all 0.2s',
-                background:   channels[key] ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)',
-                border:       channels[key] ? '2px solid #6366f1'     : '2px solid rgba(255,255,255,0.1)',
-                color:        channels[key] ? '#a5b4fc'               : 'var(--text2)',
-                boxShadow:    channels[key] ? '0 0 12px rgba(99,102,241,0.25)' : 'none',
-              }}
+              className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition ${channels[key] ? CHANNEL_STYLES.active : CHANNEL_STYLES.inactive}`}
             >
               {icon} {label}
             </button>
@@ -269,11 +259,7 @@ export default function AlertsPanel({ params, lang, trigger }) {
             placeholder={t.email}
             value={email}
             onChange={e => setEmail(e.target.value)}
-            style={{
-              width: '100%', padding: '10px 14px', marginBottom: 10,
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 8, color: 'var(--text1)', fontSize: 14, outline: 'none', boxSizing: 'border-box',
-            }}
+            className="mb-2.5 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-indigo-300/50 focus:ring-2 focus:ring-indigo-300/20"
           />
         )}
 
@@ -284,11 +270,7 @@ export default function AlertsPanel({ params, lang, trigger }) {
             placeholder={t.phone}
             value={phone}
             onChange={e => setPhone(e.target.value)}
-            style={{
-              width: '100%', padding: '10px 14px', marginBottom: 10,
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 8, color: 'var(--text1)', fontSize: 14, outline: 'none', boxSizing: 'border-box',
-            }}
+            className="mb-2.5 w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-indigo-300/50 focus:ring-2 focus:ring-indigo-300/20"
           />
         )}
 
@@ -296,35 +278,35 @@ export default function AlertsPanel({ params, lang, trigger }) {
         <button
           onClick={handleSend}
           disabled={sending}
-          style={{
-            padding: '11px 28px', borderRadius: 8, cursor: sending ? 'not-allowed' : 'pointer',
-            background: sending ? 'rgba(99,102,241,0.3)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-            border: 'none', color: '#fff', fontWeight: 700, fontSize: 14,
-            boxShadow: '0 4px 16px rgba(99,102,241,0.3)', transition: 'all 0.2s',
-            opacity: sending ? 0.7 : 1,
-          }}
+          className={`rounded-xl px-6 py-2.5 text-sm font-bold text-white transition ${
+            sending
+              ? 'cursor-not-allowed bg-indigo-500/40 opacity-70'
+              : 'bg-gradient-to-r from-indigo-500 to-violet-500 shadow-lg shadow-indigo-500/30 hover:-translate-y-0.5'
+          }`}
         >
           {sending ? `⏳ ${t.sending}` : `🚀 ${t.send}`}
         </button>
 
         {/* Dispatch Results */}
         {dispResult && (
-          <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text2)', marginBottom: 8 }}>
+          <div className="mt-4">
+            <div className="mb-2 text-sm font-bold text-slate-300">
               {t.dispatchTitle}
             </div>
             {Object.entries(dispResult).map(([ch, res]) => (
-              <div key={ch} style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '8px 12px', marginBottom: 6, borderRadius: 8,
-                background: res.success ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                border: `1px solid ${res.success ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-              }}>
-                <span style={{ fontSize: 16 }}>
+              <div
+                key={ch}
+                className={`mb-1.5 flex items-center gap-2.5 rounded-xl border px-3 py-2 ${
+                  res.success
+                    ? 'border-emerald-400/30 bg-emerald-400/10'
+                    : 'border-rose-400/30 bg-rose-400/10'
+                }`}
+              >
+                <span className="text-base">
                   {ch === 'email' ? '📧' : ch === 'sms' ? '📱' : '🔔'}
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{ch}</span>
-                <span style={{ fontSize: 12, color: res.success ? '#86efac' : '#fca5a5' }}>
+                <span className="text-sm font-semibold capitalize text-white">{ch}</span>
+                <span className={`text-xs ${res.success ? 'text-emerald-200' : 'text-rose-200'}`}>
                   {res.success ? '✅' : '❌'} {res.message}
                 </span>
               </div>

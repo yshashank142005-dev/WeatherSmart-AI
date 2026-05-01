@@ -67,15 +67,17 @@ export default function ChatbotPanel({ lang }) {
       </div>
 
       {/* Quick questions */}
-      <div style={{marginBottom:16}}>
-        <div style={{fontSize:11,color:'var(--text3)',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:8}}>{t.quick}</div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+      <div className="mb-4">
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">{t.quick}</div>
+        <div className="flex flex-wrap gap-2">
           {QUICK[lang].map(q => (
-            <button key={q} onClick={() => send(q)}
-              style={{padding:'6px 14px',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:20,fontSize:12,color:'var(--text2)',cursor:'pointer',transition:'all 0.2s'}}
-              onMouseEnter={e=>e.target.style.borderColor='var(--accent)'}
-              onMouseLeave={e=>e.target.style.borderColor='var(--border)'}
-            >{q}</button>
+            <button
+              key={q}
+              onClick={() => send(q)}
+              className="rounded-full border border-white/10 bg-slate-800/80 px-3 py-1.5 text-xs text-slate-300 transition hover:border-emerald-300/40 hover:text-emerald-200"
+            >
+              {q}
+            </button>
           ))}
         </div>
       </div>
@@ -93,17 +95,17 @@ export default function ChatbotPanel({ lang }) {
           {msgs.map((m, i) => (
             <div className={`msg ${m.role}`} key={i}>
               {m.role === 'bot' && (
-                <div style={{width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,var(--accent),var(--accent2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>🌾</div>
+                <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 to-indigo-500 text-sm">🌾</div>
               )}
               <div className="msg-bubble">{m.text}</div>
             </div>
           ))}
           {loading && (
             <div className="msg bot">
-              <div style={{width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,var(--accent),var(--accent2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>🌾</div>
-              <div className="msg-bubble" style={{display:'flex',gap:6,alignItems:'center'}}>
-                <span className="spinner" style={{width:12,height:12,borderWidth:2}} />
-                <span style={{color:'var(--text3)',fontSize:12}}>Thinking…</span>
+              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 to-indigo-500 text-sm">🌾</div>
+              <div className="msg-bubble flex items-center gap-1.5">
+                <span className="spinner h-3 w-3 border-[2px]" />
+                <span className="text-xs text-slate-400">Thinking…</span>
               </div>
             </div>
           )}
