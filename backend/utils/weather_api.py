@@ -87,7 +87,14 @@ def _parse_current(data: dict) -> dict:
         "temperature": round(data["main"]["temp"], 1),
         "feels_like":  round(data["main"]["feels_like"], 1),
         "humidity":    data["main"]["humidity"],
-        "rainfall":    data.get("rain", {}).get("1h", 0) * 24,  # mm/day estimate
+        # OWM `rain.1h` is the accumulation over the *last hour*, not an hourly rate.
+        # Multiplying by 24 inflates values up to 24×.  Instead:
+        #   • Prefer `rain.3h` (3-hour accumulation) and extrapolate to daily (/3 × 24).
+        #   • Fall back to `rain.1h` used as-is (recent mm, no extrapolation).
+        "rainfall":    round(
+            data.get("rain", {}).get("3h", data.get("rain", {}).get("1h", 0) / 3) / 3 * 24,
+            1,
+        ),
         "wind_speed":  round(data["wind"]["speed"] * 3.6, 1),   # m/s → km/h
         "description": data["weather"][0]["description"].title(),
         "icon":        data["weather"][0]["icon"],
