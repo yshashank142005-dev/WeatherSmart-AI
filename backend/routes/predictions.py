@@ -19,6 +19,28 @@ from ml.model           import model_manager
 predictions_bp = Blueprint("predictions", __name__)
 
 
+def _validate_crop(crop: str):
+    """
+    Return a 422 JSON response if *crop* is not in the encoder's known classes,
+    otherwise return None (caller continues normally).
+
+    Using 422 Unprocessable Entity: the request is well-formed JSON but the
+    value fails semantic validation.
+    """
+    valid = list(model_manager.encoder.classes_)
+    if crop not in valid:
+        return jsonify({
+            "success": False,
+            "error":   "invalid_crop",
+            "message": (
+                f"'{crop}' is not a recognised crop. "
+                f"Valid options are: {', '.join(sorted(valid))}."
+            ),
+            "valid_crops": sorted(valid),
+        }), 422
+    return None
+
+
 @predictions_bp.route("/api/predict", methods=["POST"])
 def predict():
     """
@@ -27,12 +49,17 @@ def predict():
     body = request.get_json(force=True) or {}
 
     city          = body.get("city",          "Delhi")
-    crop          = body.get("crop",          "wheat").lower()
+    crop          = body.get("crop",          "wheat").lower().strip()
     soil_moisture = float(body.get("soil_moisture", 50))
     soil_ph       = float(body.get("soil_ph",       6.5))
     soil_N        = body.get("N")   # optional — defaults handled in model
     soil_P        = body.get("P")
     soil_K        = body.get("K")
+
+    # Validate crop before any expensive work
+    err = _validate_crop(crop)
+    if err:
+        return err
 
     # Fetch live / mock weather
     weather = get_current_weather(city)
@@ -101,7 +128,7 @@ def whatif():
     body = request.get_json(force=True) or {}
 
     city          = body.get("city",          "Delhi")
-    crop          = body.get("crop",          "wheat").lower()
+    crop          = body.get("crop",          "wheat").lower().strip()
     soil_moisture = float(body.get("soil_moisture", 50))
     soil_ph       = float(body.get("soil_ph",       6.5))
     temp_delta    = float(body.get("temp_delta",    0))
@@ -109,6 +136,11 @@ def whatif():
     soil_N        = body.get("N")
     soil_P        = body.get("P")
     soil_K        = body.get("K")
+
+    # Validate crop before any expensive work
+    err = _validate_crop(crop)
+    if err:
+        return err
 
     # Fetch live weather (once)
     weather = get_current_weather(city)
