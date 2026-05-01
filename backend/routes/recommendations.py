@@ -154,9 +154,16 @@ def recommend():
     crop          = body.get("crop",          "wheat").lower()
     soil_moisture = float(body.get("soil_moisture", 50))
     soil_ph       = float(body.get("soil_ph",       6.5))
+    soil_N        = body.get("N")
+    soil_P        = body.get("P")
+    soil_K        = body.get("K")
 
     weather      = get_current_weather(city)
     soil         = {"moisture": soil_moisture, "ph": soil_ph}
+    if soil_N is not None: soil["N"] = float(soil_N)
+    if soil_P is not None: soil["P"] = float(soil_P)
+    if soil_K is not None: soil["K"] = float(soil_K)
+
     yield_pred   = model_manager.predict_yield(crop, weather, soil)
     climate_risk = calculate_risk(weather, crop)
     pest_risk    = calculate_pest_risk(weather)
@@ -180,10 +187,17 @@ def irrigation():
     crop          = body.get("crop",          "wheat").lower()
     soil_moisture = float(body.get("soil_moisture", 50))
     soil_ph       = float(body.get("soil_ph",       6.5))
+    soil_N        = body.get("N")
+    soil_P        = body.get("P")
+    soil_K        = body.get("K")
 
     weather  = get_current_weather(city)
     forecast = get_forecast(city)
     soil     = {"moisture": soil_moisture, "ph": soil_ph}
+    if soil_N is not None: soil["N"] = float(soil_N)
+    if soil_P is not None: soil["P"] = float(soil_P)
+    if soil_K is not None: soil["K"] = float(soil_K)
+
     schedule = calculate_irrigation(crop, weather, forecast, soil_moisture)
 
     return jsonify({"success": True, "schedule": schedule})

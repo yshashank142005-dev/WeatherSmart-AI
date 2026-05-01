@@ -18,6 +18,7 @@ export default function IrrigationPanel({ params, lang, trigger }) {
         const r = await api.post('/api/irrigation', {
           city: params.city, crop: params.crop,
           soil_moisture: params.soil_moisture, soil_ph: params.soil_ph,
+          N: params.N, P: params.P, K: params.K,
         })
         setData(r.data.schedule)
       } catch {}

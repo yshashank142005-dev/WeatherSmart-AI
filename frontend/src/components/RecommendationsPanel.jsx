@@ -18,6 +18,7 @@ export default function RecommendationsPanel({ params, lang, trigger }) {
         const r = await api.post('/api/recommend', {
           city: params.city, crop: params.crop,
           soil_moisture: params.soil_moisture, soil_ph: params.soil_ph,
+          N: params.N, P: params.P, K: params.K,
         })
         setRecs(r.data.recommendations)
       } catch {}

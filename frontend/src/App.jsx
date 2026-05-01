@@ -26,6 +26,9 @@ export default function App() {
     crop: 'wheat',
     soil_moisture: 50,
     soil_ph: 6.5,
+    N: 80,   // Nitrogen  kg/ha
+    P: 40,   // Phosphorus kg/ha
+    K: 40,   // Potassium  kg/ha
   })
   const [trigger, setTrigger] = useState(0)
 

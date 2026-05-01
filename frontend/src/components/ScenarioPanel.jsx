@@ -198,6 +198,9 @@ export default function ScenarioPanel({ params, lang, trigger }) {
         crop:          params.crop,
         soil_moisture: params.soil_moisture,
         soil_ph:       params.soil_ph,
+        N:             params.N,
+        P:             params.P,
+        K:             params.K,
         temp_delta:    td,
         rain_delta:    rd,
       })

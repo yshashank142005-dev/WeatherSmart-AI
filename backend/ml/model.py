@@ -13,7 +13,7 @@ import os
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.ensemble        import RandomForestRegressor
+from sklearn.ensemble        import GradientBoostingRegressor
 from sklearn.preprocessing   import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics         import r2_score, mean_absolute_error
@@ -24,8 +24,13 @@ from config import DATA_PATH, MODEL_PATH, SUPPORTED_CROPS, CROP_CONDITIONS
 
 
 # ── Feature columns used for training ────────────────────────────────────────
-FEATURE_COLS = ["temperature", "humidity", "rainfall", "wind_speed",
-                "soil_moisture", "soil_ph", "crop_encoded"]
+# Matches the Kaggle-style 2200-row dataset columns (minus crop_type / yield_index)
+FEATURE_COLS = [
+    "N", "P", "K",                                    # soil nutrients (kg/ha)
+    "temperature", "humidity", "ph", "rainfall",       # climate + soil pH
+    "wind_speed", "soil_moisture",                     # additional agro features
+    "crop_encoded",                                    # label-encoded crop
+]
 
 TARGET_COL   = "yield_index"
 
@@ -66,25 +71,31 @@ class ModelManager:
         """Train RandomForest on crop_data.csv and persist to disk."""
         df = pd.read_csv(DATA_PATH)
 
+        # Drop rows where crop_type isn't in SUPPORTED_CROPS (e.g. legacy aliases)
+        df = df[df["crop_type"].isin(self.encoder.classes_)].reset_index(drop=True)
+
         # Encode crop type
         df["crop_encoded"] = self.encoder.transform(df["crop_type"])
 
         X = df[FEATURE_COLS].values
         y = df[TARGET_COL].values
 
+        # Stratify by crop so all 22 crops appear in both train & test
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42
+            X, y, test_size=0.2, random_state=42,
+            stratify=df["crop_encoded"].values,
         )
 
-        # Pipeline: scaler + RandomForest
+        # GradientBoosting handles non-linear multi-crop yield curves well
         pipeline = Pipeline([
             ("scaler", StandardScaler()),
-            ("rf",     RandomForestRegressor(
-                n_estimators=200,
-                max_depth=10,
-                min_samples_leaf=2,
+            ("gb",     GradientBoostingRegressor(
+                n_estimators=400,
+                max_depth=6,
+                learning_rate=0.05,
+                subsample=0.8,
+                min_samples_leaf=3,
                 random_state=42,
-                n_jobs=-1,
             )),
         ])
 
@@ -95,9 +106,9 @@ class ModelManager:
         self.train_r2  = round(r2_score(y_test, preds), 4)
         self.train_mae = round(mean_absolute_error(y_test, preds), 3)
 
-        # Extract feature importances from the RF inside the pipeline
-        rf_step     = pipeline.named_steps["rf"]
-        importances = rf_step.feature_importances_
+        # Extract feature importances from the GB inside the pipeline
+        gb_step     = pipeline.named_steps["gb"]
+        importances = gb_step.feature_importances_
         self.feature_importances_ = {
             col: round(float(imp), 4)
             for col, imp in zip(FEATURE_COLS, importances)
@@ -123,6 +134,11 @@ class ModelManager:
         """
         Predict crop yield index for the given inputs.
 
+        Parameters
+        ----------
+        weather : dict  Keys: temperature, humidity, rainfall, wind_speed
+        soil    : dict  Keys: moisture, ph, N, P, K  (NPK default to crop midpoint)
+
         Returns dict: yield_index, confidence, feature_importances, interpretation
         """
         if self.model is None:
@@ -130,31 +146,40 @@ class ModelManager:
 
         crop_enc = self._encode_crop(crop)
 
+        # Resolve NPK defaults from CROP_CONDITIONS if not supplied
+        cond = CROP_CONDITIONS.get(crop, {})
+        def _npk_mid(key, fallback):
+            rng = cond.get(key)
+            return soil.get(key, (rng[0] + rng[1]) / 2 if rng else fallback)
+
         features = np.array([[
+            _npk_mid("N", 80),
+            _npk_mid("P", 40),
+            _npk_mid("K", 40),
             weather.get("temperature",  25),
             weather.get("humidity",     65),
+            soil.get("ph",              6.5),
             weather.get("rainfall",     5),
             weather.get("wind_speed",   10),
             soil.get("moisture",        50),
-            soil.get("ph",              6.5),
             crop_enc,
         ]])
 
         raw_yield   = float(self.model.predict(features)[0])
         yield_index = round(max(0, min(100, raw_yield)), 1)
 
-        # Confidence: use std-dev across individual RF trees (proper uncertainty).
-        # Lower spread → higher confidence.  Clamped to [0, 98].
+        # Confidence: use std-dev across individual GB stage predictions (proper uncertainty).
+        # GradientBoosting doesn't have .estimators_ the same way — use staged_predict std.
+        # Fallback: use train R² scaled confidence clamped to [0, 98].
         try:
-            rf_step      = self.model.named_steps["rf"]
-            # Each estimator predicts on the *scaled* features
-            scaler       = self.model.named_steps["scaler"]
-            X_scaled     = scaler.transform(features)
-            tree_preds   = np.array([t.predict(X_scaled)[0] for t in rf_step.estimators_])
-            std_dev      = float(tree_preds.std())
-            confidence   = round(max(0, min(98, 100 - std_dev * 2)), 1)
+            gb_step  = self.model.named_steps["gb"]
+            scaler   = self.model.named_steps["scaler"]
+            X_scaled = scaler.transform(features)
+            # staged_predict gives cumulative predictions per boosting round
+            staged   = np.array(list(gb_step.staged_predict(X_scaled)))
+            std_dev  = float(staged.std())
+            confidence = round(max(0, min(98, 100 - std_dev * 3)), 1)
         except Exception:
-            # Fallback if pipeline structure changes
             confidence = round(max(0, min(98, self.train_r2 * 100 - abs(yield_index - 50) * 0.2)), 1)
 
         interpretation = (

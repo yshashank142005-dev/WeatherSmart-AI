@@ -30,11 +30,17 @@ def predict():
     crop          = body.get("crop",          "wheat").lower()
     soil_moisture = float(body.get("soil_moisture", 50))
     soil_ph       = float(body.get("soil_ph",       6.5))
+    soil_N        = body.get("N")   # optional — defaults handled in model
+    soil_P        = body.get("P")
+    soil_K        = body.get("K")
 
     # Fetch live / mock weather
     weather = get_current_weather(city)
 
     soil = {"moisture": soil_moisture, "ph": soil_ph}
+    if soil_N is not None: soil["N"] = float(soil_N)
+    if soil_P is not None: soil["P"] = float(soil_P)
+    if soil_K is not None: soil["K"] = float(soil_K)
 
     # ML prediction
     yield_pred   = model_manager.predict_yield(crop, weather, soil)
@@ -65,9 +71,16 @@ def suitability():
     city          = body.get("city",          "Delhi")
     soil_moisture = float(body.get("soil_moisture", 50))
     soil_ph       = float(body.get("soil_ph",       6.5))
+    soil_N        = body.get("N")
+    soil_P        = body.get("P")
+    soil_K        = body.get("K")
 
-    weather  = get_current_weather(city)
-    soil     = {"moisture": soil_moisture, "ph": soil_ph}
+    weather = get_current_weather(city)
+    soil    = {"moisture": soil_moisture, "ph": soil_ph}
+    if soil_N is not None: soil["N"] = float(soil_N)
+    if soil_P is not None: soil["P"] = float(soil_P)
+    if soil_K is not None: soil["K"] = float(soil_K)
+
     rankings = model_manager.rank_crop_suitability(weather, soil)
 
     return jsonify({
@@ -93,10 +106,16 @@ def whatif():
     soil_ph       = float(body.get("soil_ph",       6.5))
     temp_delta    = float(body.get("temp_delta",    0))
     rain_delta    = float(body.get("rain_delta",    0))
+    soil_N        = body.get("N")
+    soil_P        = body.get("P")
+    soil_K        = body.get("K")
 
     # Fetch live weather (once)
     weather = get_current_weather(city)
     soil    = {"moisture": soil_moisture, "ph": soil_ph}
+    if soil_N is not None: soil["N"] = float(soil_N)
+    if soil_P is not None: soil["P"] = float(soil_P)
+    if soil_K is not None: soil["K"] = float(soil_K)
 
     # ── Original predictions ──────────────────────────────────────────
     orig_yield   = model_manager.predict_yield(crop, weather, soil)

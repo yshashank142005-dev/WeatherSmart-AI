@@ -22,7 +22,11 @@ export default function PredictionsPanel({ params, lang, trigger }) {
     const run = async () => {
       setLoading(true)
       try {
-        const body = { city: params.city, crop: params.crop, soil_moisture: params.soil_moisture, soil_ph: params.soil_ph }
+        const body = {
+          city: params.city, crop: params.crop,
+          soil_moisture: params.soil_moisture, soil_ph: params.soil_ph,
+          N: params.N, P: params.P, K: params.K,
+        }
         const [p, s] = await Promise.all([
           api.post('/api/predict', body),
           api.post('/api/suitability', body),
