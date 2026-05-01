@@ -53,16 +53,32 @@ class ModelManager:
     # ── Lifecycle ──────────────────────────────────────────────────────────
 
     def load_or_train(self):
-        """Load saved model from disk, or train from scratch if absent."""
+        """Load saved model from disk, or train from scratch if absent/corrupted."""
         if os.path.exists(MODEL_PATH):
             print("[ML] Loading model from disk …")
-            bundle = joblib.load(MODEL_PATH)
-            self.model                = bundle["model"]
-            self.encoder              = bundle["encoder"]
-            self.feature_importances_ = bundle["importances"]
-            self.train_r2             = bundle["r2"]
-            self.train_mae            = bundle["mae"]
-            print(f"[ML] Model loaded — R²={self.train_r2:.3f}, MAE={self.train_mae:.2f}")
+            try:
+                bundle = joblib.load(MODEL_PATH)
+                # Validate all expected keys are present (guards against schema changes)
+                required = {"model", "encoder", "importances", "r2", "mae"}
+                missing  = required - bundle.keys()
+                if missing:
+                    raise KeyError(f"Bundle is missing keys: {missing}")
+
+                self.model                = bundle["model"]
+                self.encoder              = bundle["encoder"]
+                self.feature_importances_ = bundle["importances"]
+                self.train_r2             = bundle["r2"]
+                self.train_mae            = bundle["mae"]
+                print(f"[ML] Model loaded — R²={self.train_r2:.3f}, MAE={self.train_mae:.2f}")
+
+            except Exception as e:
+                print(f"[ML] WARNING: Failed to load model from {MODEL_PATH} — {e}")
+                print("[ML] Deleting corrupted file and retraining from scratch …")
+                try:
+                    os.remove(MODEL_PATH)
+                except OSError as rm_err:
+                    print(f"[ML] Could not delete corrupted model file: {rm_err}")
+                self.train()
         else:
             print("[ML] No saved model found — training now …")
             self.train()
