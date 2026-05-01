@@ -109,7 +109,7 @@ def _build_daily_plan(sessions: int, per_session: float, forecast: list) -> list
         if i in irrigate_days and done < sessions:
             plan.append({"day": date, "action": f"Irrigate {per_session} mm", "rainfall": rain, "irrigate": True})
             done += 1
-        elif rain > 10:
+        elif rain >= LOW_RAIN_THRESHOLD:
             plan.append({"day": date, "action": "Skip — rainfall expected", "rainfall": rain, "irrigate": False})
         else:
             plan.append({"day": date, "action": "Monitor soil moisture", "rainfall": rain, "irrigate": False})
